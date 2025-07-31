@@ -1,0 +1,6 @@
+menu-item:
+  material: PAPER
+  name: "§fTéléphone"
+  lore: "§f\uE021 Pour utiliser"
+  custom-model-data: 10298
+  command: "dmenu open main_menu %player%"

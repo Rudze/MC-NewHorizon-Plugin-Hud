@@ -1,0 +1,7 @@
+name: Hud
+version: '1.0'
+main: fr.rudy.hud.Main
+api-version: '1.21'
+
+softdepend: [Cities]
+

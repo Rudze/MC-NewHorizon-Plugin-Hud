@@ -1,0 +1,135 @@
+package fr.rudy.hud.manager;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.*;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
+
+import java.util.Arrays;
+
+public class MenuItemManager implements Listener {
+
+    private final Plugin plugin;
+    private final ItemStack menuItem;
+    private final Material itemMaterial;
+    private final int customModelData;
+    private final String menuItemName;
+    private final String menuItemLore;
+    private final String command;
+
+    public MenuItemManager(Plugin plugin) {
+        this.plugin = plugin;
+        FileConfiguration config = plugin.getConfig();
+
+        this.itemMaterial = Material.matchMaterial(config.getString("menu-item.material", "PAPER"));
+        this.menuItemName = config.getString("menu-item.name", "§fTéléphone");
+        this.menuItemLore = config.getString("menu-item.lore", "§f\uE021 Pour utiliser");
+        this.customModelData = config.getInt("menu-item.custom-model-data", 10298);
+        this.command = config.getString("menu-item.command", "dmenu open main_menu %player%");
+
+        menuItem = new ItemStack(itemMaterial);
+        ItemMeta meta = menuItem.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(menuItemName);
+            meta.setLore(Arrays.asList(menuItemLore));
+            meta.setCustomModelData(customModelData);
+            menuItem.setItemMeta(meta);
+        }
+    }
+
+    public void giveMenuItem(Player player) {
+        player.getInventory().setItem(8, menuItem);
+    }
+
+    private boolean isMenuItem(ItemStack item) {
+        if (item == null || item.getType() != itemMaterial) return false;
+        if (!item.hasItemMeta()) return false;
+
+        ItemMeta meta = item.getItemMeta();
+        return meta.hasDisplayName()
+                && menuItemName.equals(meta.getDisplayName())
+                && meta.hasCustomModelData()
+                && meta.getCustomModelData() == customModelData;
+    }
+
+    private boolean hasMenuItem(Player player) {
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (isMenuItem(item)) return true;
+        }
+        return false;
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (!hasMenuItem(player)) {
+                giveMenuItem(player);
+            }
+        }, 10L);
+    }
+
+    @EventHandler
+    public void onInteract(PlayerInteractEvent event) {
+        ItemStack item = event.getItem();
+        if (isMenuItem(item)) {
+            event.setCancelled(true);
+            event.setUseItemInHand(org.bukkit.event.Event.Result.DENY);
+            Player player = event.getPlayer();
+            String cmd = command.replace("%player%", player.getName());
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+            player.playSound(player.getLocation(), "newhorizon:newhorizon.phone", 1f, 1f);
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (event.getWhoClicked() instanceof Player player) {
+            ItemStack current = event.getCurrentItem();
+            ItemStack cursor = event.getCursor();
+
+            if (isMenuItem(current) || isMenuItem(cursor)) {
+                event.setCancelled(true);
+
+                if (isMenuItem(current)) {
+                    String cmd = command.replace("%player%", player.getName());
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                }
+
+                if (isMenuItem(cursor)) {
+                    event.setCursor(null);
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onDrop(PlayerDropItemEvent event) {
+        if (isMenuItem(event.getItemDrop().getItemStack())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onDeath(PlayerDeathEvent event) {
+        event.getDrops().removeIf(this::isMenuItem);
+    }
+
+    @EventHandler
+    public void onRespawn(PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (!hasMenuItem(player)) {
+                giveMenuItem(player);
+            }
+        }, 2L);
+    }
+}
