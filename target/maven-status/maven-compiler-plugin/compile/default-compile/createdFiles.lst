@@ -1,4 +1,3 @@
 fr\rudy\hud\Main.class
-fr\rudy\hud\manager\BossBarManager$1.class
-fr\rudy\hud\manager\BossBarManager.class
+fr\rudy\hud\placeholder\TerritoryPlaceholder.class
 fr\rudy\hud\manager\MenuItemManager.class

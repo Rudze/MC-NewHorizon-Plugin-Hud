@@ -3,7 +3,6 @@ package fr.rudy.hud;
 import fr.rudy.cities.api.CitiesAPI;
 import fr.rudy.cities.manager.CityManager;
 import fr.rudy.cities.manager.ClaimManager;
-import fr.rudy.hud.manager.BossBarManager;
 import fr.rudy.hud.manager.MenuItemManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
@@ -13,7 +12,6 @@ public final class Main extends JavaPlugin {
 
     private static Main instance;
 
-    private BossBarManager bossBarManager;
     private MenuItemManager menuItemManager;
 
     private CityManager cityManager;
@@ -53,8 +51,8 @@ public final class Main extends JavaPlugin {
             getLogger().info("ℹ️ Plugin Cities non trouvé.");
         }
 
-        // Ne pas ré-enregistrer les events ici — cela est géré dans BossBarManager
-        bossBarManager = new BossBarManager(this, cityManager, claimManager);
+        new fr.rudy.hud.placeholder.TerritoryPlaceholder(cityManager, claimManager).register();
+
     }
 
     @Override
