@@ -1,9 +1,9 @@
-name: Hud
+name: xHud
 version: '1.0'
 main: fr.rudy.hud.Main
 api-version: '1.21'
 
 depend: [PlaceholderAPI]
 
-softdepend: [Cities]
+softdepend: [xCities]
 
